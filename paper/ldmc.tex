@@ -13,88 +13,91 @@
 \begin{abstract}
 We present a solution for the \emph{Linked Data Mining Challenge 2016}, that achieved $92.5\%$ accuracy according to the submission system.
 The solution uses a hand-crafted dataset, that was created by scraping various websites for reviews.
-We used logistict regression to learn a classification model and published all our results to GitHub.
+We use logistict regression to learn a classification model and publish all our results to GitHub.
 \end{abstract}
 
 
 \section{Introduction}
 
-As indicated in the challenge website, Linked Data Mining is a novel and challengin area of research, which is mainly due to large amount, variety and heterogenity of the data.
-Unfortunately, there are also very basic, almost technical problem with them: low availablity, not complying to the standards, mistakes done during extraction and transformation from the orignal format to the Linked Data \cite{lodlaudromat}.
-Mainly because of them, we decided to take another path in our solution.
-We did the extraction by ourselves, thus receiving dataset well-suited for the challenge, as described in the Section \ref{sec:data}.
-We performed normalization and applied a very popular logistic regression method to train the classification model, as described in Section \ref{sec:ml}.
+As indicated in the challenge website, Linked Data Mining is a novel and challengin research area.
+These challenges are mainly due to large amount, variety and heterogenity of the data.
+Unfortunately, there are also very basic, almost technical, problems with them: low availablity, not complying to the standards, mistakes done during extraction and transformation from the orignal format to the Linked Data \cite{lodlaudromat}.
+Because of that, we decided to take another path in our solution.
+We did the extraction by ourselves, thus receiving dataset well-suited for the challenge, as described in Section \ref{sec:data}.
+We performed normalization and applied a very popular logistic regression method to train a classification model, as described in Section \ref{sec:ml}.
 
 Throughout the rest of the paper, we use a prefix \texttt{dbr:} for \url{http://dbpedia.org/resource/} and \texttt{dbp:} for \url{http://dbpedia.org/property/}.
-Web-scraping scripts, created dataset, machine learning process and model are available on GitHub: \url{https://github.com/jpotoniec/LDMC2016}.
+Web scraping scripts, created dataset, machine learning process and model are available on GitHub: \url{https://github.com/jpotoniec/LDMC2016}.
 
 \section{Datasets\label{sec:data}}
 \subsection{Training and test data}
 We observed some irregularities and unexpected things in the datasets provided by the challenge.
 For the album \emph{In Some Way, Shape, or Form} by \emph{Four Year Strong} the data pointed to the resource \url{dbr:In_Some_Way,_Shape_or_Form}.
-Unfortunately, in the DBpedia there are two corresponding resources, the other one being \url{dbr:In_Some_Way,_Shape,_or_Form} (note the second comma).
-The DBpedia Website does some sort of redirection, so when visiting with a web browser both URIs point to \url{http://dbpedia.org/page/In_Some_Way,_Shape,_or_Form}.
+Unfortunately, in the \emph{DBpedia} \cite{dbpedia} there are two corresponding resources, the other one being \url{dbr:In_Some_Way,_Shape,_or_Form} (note the second comma).
+The \emph{DBpedia} website does some sort of redirection, so when visiting with a web browser both URIs point to \url{http://dbpedia.org/page/In_Some_Way,_Shape,_or_Form}.
 Conversely, the SPARQL endpoint\footnote{\url{http://dbpedia.org/sparql}} treats both URIs separately, the first one occuring in 18 triples and the second one in 100 triples.
 
-For an artist \emph{St. Vincent} there are two albums listed: \emph{Strange Mercy} in the training data and \emph{St. Vincent} in the testing data.
+For an artist \emph{St. Vincent} there are two albums in the datasets: \emph{Strange Mercy} in the training data and \emph{St. Vincent} in the testing data.
 Unfortunately, both have the same URI \url{dbr:Strange_Mercy}.
-We are to believe that there are a few similar issues, as there are eight URIs that occur more than once in the datasets.
-
-There was also a minor issue with the description of the datasets.
-The challenge website claims that \emph{music albums with score above 79 are regarded as "good" music albums, while music albums with score less than 40 are regarded as "bad" music albums}.
-Apprantly, only the first part of the sentence is true and everything below 79 was classified as "bad".
+We think there may be a few similar issues, as there are eight URIs that occur more than once in the datasets.
+%
+%There was also a minor issue with the description of the datasets.
+%The challenge website claims that \emph{music albums with score above 79 are regarded as "good" music albums, while music albums with score less than 40 are regarded as "bad" music albums}.
+%Apprantly, only the first part of the sentence is true and everything below 79 was classified as "bad".
 
 \subsection{Linked datasets\label{sec:ld}}
-In the beginning, we planned to extract features from DBpedia using Fr-ONT-Qu \cite{frontqu} from RMonto \cite{rmonto}, a plugin to RapidMiner \cite{rapidminer}.
-Unfortunately, that the most promising feature discovered was a binary information if an album has a review score from \emph{Pitchfork}\footnote{\url{http://pitchfork.com/}} or not.
-After investigating, we discovered that during the extraction process a relation between a reviewing website and a review score has been lost.
-Consider triples for the \emph{Strange Mercy} album\footnote{\url{http://dbpedia.org/page/Strange_Mercy}}: there are 11 triples with a property \texttt{dbp:rev} and a few triples with properties similar to \texttt{dbp:rev10score}, but one has absolutely no way to connect scores to the reviewing websites.
-The very same problem happens with properties \texttt{dbp:title} (12 values) and \texttt{dbp:length} (11 values): it is impossible to decide on lenght for a concrete track.
+In the beginning, we planned to extract features from \emph{DBpedia} using \emph{Fr-ONT-Qu} \cite{frontqu} from \emph{RMonto} \cite{rmonto}, a plugin to \emph{RapidMiner} \cite{rapidminer}.
+Unfortunately, the most promising feature discovered this way was a binary information if an album has a review score from \emph{Pitchfork}\footnote{\url{http://pitchfork.com/}} or not.
+After investigating, we discovered that during the extraction from Wikipedia to DBpedia a relation between a reviewing website and a review score has been lost.
+Consider triples for the \emph{Strange Mercy} album\footnote{\url{http://dbpedia.org/page/Strange_Mercy}}: there are 11 triples with a property \texttt{dbp:rev} and a few triples with properties like \texttt{dbp:rev10score}, but one has absolutely no way to connect scores to the reviewing websites.
+The very same problem happens with properties \texttt{dbp:title} (12 values) and \texttt{dbp:length} (11 values): it is impossible to decide on a lenght for a concrete track.
 
-We thought about using \emph{Yago} \cite{yago}, but it seemed to lack necessary information.
+We thought about using \emph{Yago} \cite{yago}, but it seemed to lack review information.
 We also tried to use \emph{DBTune}\footnote{\url{http://dbtune.org/}}, as suggested by the challenge website, but it rendered out to be a dead end.
 For example, \emph{Musicbrainz data}, the most interesting dataset there, is a \emph{Service Temporarily Unavailable} for a very long time now.
 
 \subsection{Non-linked datasets\label{sec:nonld}}
 Instead of trying to use existing Linked Data, we decided find data to solve the challenge, and then make it available to the community.
 As the datasets for the challenge are quite small (1592 different URIs), we did some web scrapping with \emph{Python} and \emph{Scrapy}\footnote{\url{http://scrapy.org/}} to obtain reviews of considered albums.
-Precisely, we scraped Wikipedia to obtain reviews from various websites gathered there.
-It rendered out to be a tedious process, as these reviews have various formats, frequently with some additional information (like a date or an url to a review), or even spelling mistakes.
-We perform normalization to a range $\left[0,1\right]$, by dividing in case of reviews on scales from 0 to 10 or 100 and by assigning arbitrarly numeric values to the descriptive reviews (like \emph{favorable}).
-We also did some heuristic to normalize reviewers names, e.g. \emph{BBC} and \emph{BBC Music} or \emph{The Village Voice} and \emph{Village Voice}.
-We must note here, that we strictly avoided using \emph{Metacritics} reviews available in the Wikipedia, what fortunately rendered out to be a simple task: the \emph{Metacritics} reviews use \texttt{MC} field in \texttt{Album ratings} template, while we used only fields starting with \texttt{rev} \cite{album_ratings}.
 
-Furthermore, we used titles and artists provided in the challenge datasets to collect average reviews from \emph{Discogs}\footnote{\url{https://www.discogs.com/}} (using their API) and \emph{Amazon}\footnote{\url{http://www.amazon.com/}} (using web scraping).
-Finally, we used datadumps provided by \emph{MusicBrainz}\footnote{\url{https://musicbrainz.org/doc/MusicBrainz_Database/Download}} \cite{musicbrainz} to obtain how many people have an album and how many people want an album.
+We scraped Wikipedia to obtain reviews collected from various websites.
+It rendered out to be a tedious process, as these reviews have various formats, frequently with some additional information (like a date or an URL to a review), or spelling mistakes.
+We performed normalization to a range $\left[0,1\right]$, by dividing in case of reviews on scales from 0 to 10 or 100 and by assigning arbitrarly numeric values to descriptive reviews (like \emph{favorable}).
+We also did some heuristic to normalize reviewing websites, e.g. \emph{BBC} and \emph{BBC Music}.
+We strictly avoided using \emph{Metacritics} reviews available in \emph{Wikipedia}: these reviews use \texttt{MC} field in \texttt{Album ratings} template, while we used only fields starting with \texttt{rev} \cite{album_ratings}.
+
+We collected number of reviewers and an average score from \emph{Amazon}\footnote{\url{http://www.amazon.com/}} by scraping the website using titles and artists provided in the challenge datasets.
+We also used \emph{Discogs}\footnote{\url{https://www.discogs.com/}} API and provided titles and artists to gather how many people own an album and how many people want it.
+Finally, we used datadumps provided by \emph{MusicBrainz}\footnote{\url{https://musicbrainz.org/doc/MusicBrainz_Database/Download}} \cite{musicbrainz} and identifiers from Wikidata \cite{wikidata} available in the datadumps and in \emph{DBpedia}, to obtain number of users owning an album and it's average score.
+The whole dataset consists of 94 numerical attributes.
 
 \section{Machine learning process and model\label{sec:ml}}
 
-The whole dataset consists of 94 numerical attributes.
-We used a typical machine learning setup for classification.
-As all of our attributes are numeric, we perform standarization by subtracting an average for a given feature and then dividing by a standard deviation, i.e. Z-transformation.
-This way all our features have a mean value 0 and a standard deviation 1.
-Further, we replace all missing values with mean, that is with 0.
-Finally, we used logistic regression \cite{logistic_regression} to learn a classification model.
+To build a classification model, we used a typical machine learning setup for classification.
+We performed a Z-transformation on all attributes, that is for every attribute we computed an average value $\mu$ and a standard deviation $\sigma$, and then replaced every value $v$ of the attribute with $\frac{v-\mu}{\sigma}$.
+This way all attributes have an average 0 and a standard deviation 1.
+Further, we replaced missing values with 0.
+Finally, we used logistic regression \cite{logistic_regression} to train the model.
 
-To estimate performance of our solution we applied 10-folds cross-validation, which estimated an accuracy of our solution to be $91.7\pm 2.17\%$.
+To estimate performance of our solution we applied 10-folds cross-validation, which estimated accuracy to be $91.7\pm 2.17\%$.
 This value is consistent with $92.5\%$ on the test set reported by the challenge submission system.
-The whole process have been implemented using \emph{RapidMiner 5} environment and is available in GitHub.
+The whole process have been implemented using \emph{RapidMiner 5} and is available in GitHub.
 
-An important part of logistict regression is to assign coefficients to features of an input dataset.
-Values of these coefficients provide an insight which features are most important for the model.
+An important part of logistict regression is to assign coefficients to attributes of an input dataset.
+Values of these coefficients provide an insight which attributes are most important for the model.
 In our case, the absolute value of the highest coefficient is $2.859$ and the lowest $0.022$.
 As all the attributes are on the same scale, this clearly shows that some of them are more important than the others.
 There were six attributes having coefficients above 1, we present them in the Table \ref{tab:best_attrs}.
-Five of these attributes were web-scrapped from Wikipedia, only the attribute from \emph{Discogs} came from other source.
+Five of these attributes were review scores web scrapped from Wikipedia, only the attribute from \emph{Discogs} came from other source.
 These attributes clearly indicate that \emph{Metacritic} reviews are quite consistent with other sources of reviews.
 The attribute with the highest coefficient is an review value from \emph{Pitchfork}, what is consistent with the most important attribute from \emph{Linked Data}, as mentioned in Section \ref{sec:ld}.
 The attribute from \emph{Discogs} indicates how many people own an album and is probably a tendency of people to buy and brag about albums that have good reviews.
 The attribute with the lowest weight $-0.442$ is a number of reviews of an album on \emph{Amazon}.
-As the \emph{Amazon} is a shop, it probably shows a tendency of people to complain about bad things and not appreciate good things.
+As the \emph{Amazon} is a shop, it probably shows a tendency of people to complain about bad things and to not appreciate good things.
 
 \begin{table}
 \caption{The attributes having coefficients in logistic regression model above 1.
-These coefficients were all positive, what means that the higher they are, the higher probability of given album being a good one.
+These coefficients were all positive, what means that the higher they are, the higher probability of a given album being a good one.
 \label{tab:best_attrs}
 }
 \begin{tabular}{l|r}
@@ -114,7 +117,7 @@ review score from \emph{The Guardian} \url{www.theguardian.com} & $1.096$ \\ %TO
 Apparently, we are not there yet with the Semantic Web.
 In theory, most of the features we used were already available in the Linked Data.
 In practice, they were not.
-The issues with the Linked Data discussed in the paper clearly suggests that even a very simple and crude solutions doing site-scrapping can easily outperform solutions based on the Linked Data.
+The issues with the Linked Data discussed in the paper clearly suggests that even a very simple and crude solutions doing web scrapping can easily outperform solutions based on the Linked Data.
 
 The presented solution consists of 641 lines of Python code and can classify correctly 296 out of 320 test albums, which we find to be quite a good result given a small amount of time invested and irregularities in the provided datasets.
 It is also worth to note, that the baseline solution was able to classify correctly 222 test albums ($69.375\%$), so our solution offers quite an improvement.

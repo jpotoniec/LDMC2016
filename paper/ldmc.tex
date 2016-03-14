@@ -13,21 +13,20 @@
 \begin{abstract}
 We present a solution for the \emph{Linked Data Mining Challenge 2016}, that achieved $92.5\%$ accuracy according to the submission system.
 The solution uses a hand-crafted dataset, that was created by scraping various websites for reviews.
-We use logistic regression to learn a classification model and publish all our results to GitHub.
+We use logistic regression to learn a classification model and we publish all our results to \emph{GitHub}.
 \end{abstract}
 
 
 \section{Introduction}
 
-As indicated in the challenge website, Linked Data Mining is a novel and challenging research area.
-These challenges are mainly due to large amount, variety and heterogeneity of the data.
-Unfortunately, there are also very basic, almost technical, problems with them: low availability, not complying to the standards, mistakes done during extraction and transformation from the original format to the Linked Data \cite{lodlaudromat}.
+As indicated in the challenge website, Linked Data Mining is a novel and challenging research area, mainly due to large amount, variety and heterogeneity of the data.
+Unfortunately, there are also very basic, almost technical, problems with the data: they do not comply with the standards, there is a lot of mistakes introduced during extraction and transformation from an original format to the Linked Data, websites publishing the data are frequently down \cite{lodlaudromat}.
 Because of that, we decided to take another path in our solution.
 We did the extraction by ourselves, thus receiving dataset well-suited for the challenge, as described in Section \ref{sec:data}.
 We performed normalization and applied a very popular logistic regression method to train a classification model, as described in Section \ref{sec:ml}.
 
 Throughout the rest of the paper, we use a prefix \texttt{dbr:} for \url{http://dbpedia.org/resource/} and \texttt{dbp:} for \url{http://dbpedia.org/property/}.
-Web scraping scripts, created dataset, machine learning process and model are available on GitHub: \url{https://github.com/jpotoniec/LDMC2016}.
+Web scraping scripts, created dataset, machine learning process and model are available on \emph{GitHub}: \url{https://github.com/jpotoniec/LDMC2016}.
 
 \section{Datasets\label{sec:data}}
 \subsection{Training and test data}
@@ -48,7 +47,7 @@ We think there may be a few similar issues, as there are eight URIs that occur m
 \subsection{Linked datasets\label{sec:ld}}
 In the beginning, we planned to extract features from \emph{DBpedia} using \emph{Fr-ONT-Qu} \cite{frontqu} from \emph{RMonto} \cite{rmonto}, a plugin to \emph{RapidMiner} \cite{rapidminer}.
 Unfortunately, the most promising feature discovered this way was a binary information if an album has a review score from \emph{Pitchfork}\footnote{\url{http://pitchfork.com/}} or not.
-After investigating, we discovered that during the extraction from Wikipedia to DBpedia a relation between a reviewing website and a review score has been lost.
+After investigating, we discovered that during the extraction from \emph{Wikipedia} to \emph{DBpedia} a relation between a reviewing website and a review score has been lost.
 Consider triples for the \emph{Strange Mercy} album\footnote{\url{http://dbpedia.org/page/Strange_Mercy}}: there are 11 triples with a property \texttt{dbp:rev} and a few triples with properties like \texttt{dbp:rev10score}, but one has absolutely no way to connect scores to the reviewing websites.
 The very same problem happens with properties \texttt{dbp:title} (12 values) and \texttt{dbp:length} (11 values): it is impossible to decide on a length for a concrete track.
 
@@ -60,7 +59,7 @@ For example, \emph{MusicBrainz data}, the most interesting dataset there, is a \
 Instead of trying to use existing Linked Data, we decided find data to solve the challenge, and then make it available to the community.
 As the datasets for the challenge are quite small (1592 different URIs), we did some web scrapping with \emph{Python} and \emph{Scrapy}\footnote{\url{http://scrapy.org/}} to obtain reviews of considered albums.
 
-We scraped Wikipedia to obtain reviews collected from various websites.
+We scraped \emph{Wikipedia} to obtain reviews collected from various websites.
 It rendered out to be a tedious process, as these reviews have various formats, frequently with some additional information (like a date or an URL to a review), or spelling mistakes.
 We performed normalization to a range $\left[0,1\right]$, by dividing in case of reviews on scales from 0 to 10 or 100 and by assigning arbitrarily numeric values to descriptive reviews (like \emph{favorable}).
 We also did some heuristic to normalize reviewing websites, e.g. \emph{BBC} and \emph{BBC Music}.
@@ -81,19 +80,19 @@ Finally, we used logistic regression \cite{logistic_regression} to train the mod
 
 To estimate performance of our solution we applied 10-folds cross-validation, which estimated accuracy to be $91.7\pm 2.17\%$.
 This value is consistent with $92.5\%$ on the test set reported by the challenge submission system.
-The whole process have been implemented using \emph{RapidMiner 5} and is available in GitHub.
+The whole process have been implemented using \emph{RapidMiner 5} and is available in \emph{GitHub}.
 
 An important part of logistic regression is to assign coefficients to attributes of an input dataset.
 Values of these coefficients provide an insight which attributes are most important for the model.
 In our case, the absolute value of the highest coefficient is $2.859$ and the lowest $0.022$.
 As all the attributes are on the same scale, this clearly shows that some of them are more important than the others.
 There were six attributes having coefficients above 1, we present them in the Table \ref{tab:best_attrs}.
-Five of these attributes were review scores web scrapped from Wikipedia, only the attribute from \emph{Discogs} came from other source.
+Five of these attributes were review scores web scrapped from \emph{Wikipedia}, only the attribute from \emph{Discogs} came from other source.
 These attributes clearly indicate that \emph{Metacritic} reviews are quite consistent with other sources of reviews.
 The attribute with the highest coefficient is an review value from \emph{Pitchfork}, what is consistent with the most important attribute from \emph{Linked Data}, as mentioned in Section \ref{sec:ld}.
 The attribute from \emph{Discogs} indicates how many people own an album and is probably a tendency of people to buy and brag about albums that have good reviews.
 The attribute with the lowest weight $-0.442$ is a number of reviews of an album on \emph{Amazon}.
-As the \emph{Amazon} is a shop, it probably shows a tendency of people to complain about bad things and to not appreciate good things.
+As \emph{Amazon} is a shop, it probably shows a tendency of people to complain about bad things and to not appreciate good things.
 
 \begin{table}
 \caption{The attributes having coefficients in logistic regression model above 1.

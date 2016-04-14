@@ -1,5 +1,6 @@
 # LDMC2016
-A solution for Linked Data Mining Challenge 2016
+A solution for Linked Data Mining Challenge 2016.
+The paper is available in the folder [paper](paper), and the supplementary material is in the folder [LOD](LOD).
 
 # Data format
 

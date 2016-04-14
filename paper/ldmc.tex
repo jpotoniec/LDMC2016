@@ -50,6 +50,7 @@ Unfortunately, the most promising feature discovered this way was a binary infor
 After investigating, we discovered that during the extraction from \emph{Wikipedia} to \emph{DBpedia} a relation between a reviewing website and a review score has been lost.
 Consider triples for the \emph{Strange Mercy} album\footnote{\url{http://dbpedia.org/page/Strange_Mercy}}: there are 11 triples with a property \texttt{dbp:rev} and a few triples with properties like \texttt{dbp:rev10score}, but one has absolutely no way to connect scores to the reviewing websites.
 The very same problem happens with properties \texttt{dbp:title} (12 values) and \texttt{dbp:length} (11 values): it is impossible to decide on a length for a concrete track.
+Due to the lack of space, we present a detailed analysis in the suplementary material available in \emph{GitHub}.
 
 We thought about using \emph{Yago} \cite{yago}, but it seemed to lack review information.
 We also tried to use \emph{DBTune}\footnote{\url{http://dbtune.org/}}, as suggested by the challenge website, but it rendered out to be a dead end.
